@@ -1,6 +1,6 @@
 import sample from "./sample.js";
 
-function isLatter(char: string) {
+function isLetter(char: string) {
     return ("A" <= char && char <= "Z") || ("a" <= char && char <= "z")
 }
 
@@ -43,7 +43,16 @@ class Automata {
 
     private static stateBinding: Record<STATE, ((this: Automata, symbol: string) => void)> = {
         [STATE.CLOSING_NODE](symbol: string) {
+            if (!isLetter(symbol)) throw new SyntaxError(`unexpected symbol (${symbol})`);
             this.state = STATE.NODE_NAME;
+        },
+
+        [STATE.META_NODE](symbol: string){
+            throw new Error("unimplemented");
+        },
+
+        [STATE.COMMENT_NODE](symbol: string) {
+            throw new Error("unimplemented");
         },
 
         [STATE.NODE_ATTR_NAME](symbol: string) {
