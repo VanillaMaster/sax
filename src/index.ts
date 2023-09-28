@@ -93,7 +93,8 @@ enum STATE {
 
     NODE_SCRIPT_ATTR_NAME = "NODE_SCRIPT_ATTR_NAME",
     NODE_SCRIPT_ATTR_VALUE_START = "NODE_SCRIPT_ATTR_VALUE_START",
-    NODE_SCRIPT_ATTR_VALUE_BODY = "NODE_SCRIPT_ATTR_VALUE_BODY",
+    NODE_SCRIPT_ATTR_VALUE_BODY_DOUBLE_QUOTATION = "NODE_SCRIPT_ATTR_VALUE_BODY_DOUBLE_QUOTATION",
+    NODE_SCRIPT_ATTR_VALUE_BODY_SINGLE_QUOTATION = "NODE_SCRIPT_ATTR_VALUE_BODY_SINGLE_QUOTATION",
 
     SCRIPT_BODY = "SCRIPT_BODY",
     
@@ -106,7 +107,7 @@ enum STATE {
     NODE_END_SCRIPT_7 = "NODE_END_SCRIPT_7",
     NODE_END_SCRIPT_8 = "NODE_END_SCRIPT_8",
 
-
+    //
 
     NODE_NAME = "NODE_NAME",
     NODE_BODY = "NODE_BODY",
@@ -157,6 +158,7 @@ class Automata {
                 this.state = STATE.NODE_START_SCRIPT_1;
 
                 this.buffer.push(symbol);
+                console.log("OPENING_NODE");
             } else if (isLetter(symbol)) {
                 this.state = STATE.NODE_NAME;
 
@@ -273,12 +275,24 @@ class Automata {
 
         [STATE.NODE_SCRIPT_ATTR_VALUE_START](symbol: number) {
             if (symbol == CHAR_QUOTATION_DOUBLE) {
-                this.state = STATE.NODE_SCRIPT_ATTR_VALUE_BODY;
+                this.state = STATE.NODE_SCRIPT_ATTR_VALUE_BODY_DOUBLE_QUOTATION;
+            } else if (symbol == CHAR_QUOTATION_SINGLE) {
+                this.state = STATE.NODE_SCRIPT_ATTR_VALUE_BODY_SINGLE_QUOTATION;
             } else throw new SyntaxError(`unexpected symbol (${String.fromCharCode(symbol)})`);
         },
 
-        [STATE.NODE_SCRIPT_ATTR_VALUE_BODY](symbol: number) {
+        [STATE.NODE_SCRIPT_ATTR_VALUE_BODY_DOUBLE_QUOTATION](symbol: number) {
             if (symbol == CHAR_QUOTATION_DOUBLE) {
+                this.state = STATE.NODE_SCRIPT_BODY;
+
+                console.log("NODE_ATTR_VALUE:", String.fromCharCode(...this.buffer));
+                this.buffer.length = 0;
+            } else {
+                this.buffer.push(symbol);
+            }
+        },
+        [STATE.NODE_SCRIPT_ATTR_VALUE_BODY_SINGLE_QUOTATION](symbol: number) {
+            if (symbol == CHAR_QUOTATION_SINGLE) {
                 this.state = STATE.NODE_SCRIPT_BODY;
 
                 console.log("NODE_ATTR_VALUE:", String.fromCharCode(...this.buffer));
