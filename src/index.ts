@@ -58,7 +58,8 @@ class Automata {
                 // this.buffer.push(symbol)
             } else {
                 this.state = STATE.TEXT_NODE;
-                // this.buffer.push(symbol)
+
+                this.buffer.push(symbol)
             }
         },
         
@@ -115,6 +116,11 @@ class Automata {
         [STATE.COMMENT_NODE_BODY](symbol: string) {
             if (symbol == "-") {
                 this.state = STATE.COMMENT_NODE_END_1;
+
+                this.buffer.push(symbol);
+            } else {
+                //ok
+                this.buffer.push(symbol);
             }
         },
 
@@ -124,8 +130,12 @@ class Automata {
         [STATE.COMMENT_NODE_END_1](symbol: string) {
             if (symbol == "-") {
                 this.state = STATE.COMMENT_NODE_END_2;
+
+                this.buffer.push(symbol);
             } else {
                 this.state = STATE.COMMENT_NODE_BODY;
+
+                this.buffer.push(symbol);
             }
         },
 
@@ -135,10 +145,18 @@ class Automata {
         [STATE.COMMENT_NODE_END_2](symbol: string) {
             if (symbol == ">") {
                 this.state = STATE.NONE;
+
+                this.buffer.length -= 2;
+                console.log("COMMENT_NODE:", this.buffer.join(""));
+                this.buffer.length = 0;
             } else if (symbol = "-") {
                 this.state = STATE.COMMENT_NODE_END_2;
+
+                this.buffer.push(symbol);
             } else {
                 this.state = STATE.COMMENT_NODE_BODY;
+                
+                this.buffer.push(symbol);
             }
         },
 
@@ -241,6 +259,12 @@ class Automata {
         [STATE.TEXT_NODE](symbol: string) {
             if (symbol == "<") {
                 this.state = STATE.NODE_START;
+
+                console.log("TEXT_NODE:", this.buffer.join(""));
+                this.buffer.length = 0;
+            } else {
+                //ok
+                this.buffer.push(symbol);
             }
         }
     }
