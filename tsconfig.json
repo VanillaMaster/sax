@@ -9,7 +9,10 @@
         "noImplicitAny": true,
         "paths": {},
         "checkJs": true,
-        "rootDir": "."
+        "rootDir": ".",
+        "types": [
+            "node"
+        ]
     },
     "include": [
         "src/**/*",
