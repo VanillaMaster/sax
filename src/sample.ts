@@ -5,7 +5,7 @@ export default `
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" attr2="42">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" data-attr2="42">
     <title>Document</title>
 </head>
 <body>
