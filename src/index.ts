@@ -8,6 +8,8 @@ const CHAR_EQUAL = 61;//"=".charCodeAt(0);
 const CHAR_EXCLAMATION_MARK = 33;//"!".charCodeAt(0);
 /** ```"``` */
 const CHAR_QUOTATION_DOUBLE = 34;//'"'.charCodeAt(0);
+/** ```'``` */
+const CHAR_QUOTATION_SINGLE = "'".charCodeAt(0);
 /** ```/``` */
 const CHAR_SLASH = 47;//"/".charCodeAt(0);
 /** ```-``` */
@@ -49,6 +51,13 @@ function isLetter(char: number) {
 
 function isDigit(char: number) {
     return CHAR_0 <= char && char <= CHAR_9;
+}
+
+/**
+ * vired bihavour due to chrome (support any names like ```center"``` or ```ele=ment``` )
+ */
+function isValidTagNameSymbol(char: number) {
+    return !(isSpace(char) || char == CHAR_GREATER);
 }
 
 function isAlphanumeric(char: number) {
@@ -106,7 +115,9 @@ enum STATE {
     NODE_ATTR_NAME = "NODE_ATTR_NAME",
 
     NODE_ATTR_VALUE_START = "NODE_ATTR_VALUE_START",
-    NODE_ATTR_VALUE_BODY = "NODE_ATTR_VALUE_BODY"
+    NODE_ATTR_VALUE_BODY_DOUBLE_QUOTATION = "NODE_ATTR_VALUE_BODY_DOUBLE_QUOTATION",
+    NODE_ATTR_VALUE_BODY_SINGLE_QUOTATION = "NODE_ATTR_VALUE_BODY_SINGLE_QUOTATION",
+    // NODE_ATTR_VALUE_BODY = "NODE_ATTR_VALUE_BODY"
 }
 
 class Automata {
@@ -480,7 +491,7 @@ class Automata {
          * ```<!```
          */
         [STATE.NODE_NAME](symbol: number) {
-            if (isAlphanumeric(symbol)) {
+            if (isValidTagNameSymbol(symbol)) {
                 //ok
                 this.buffer.push(symbol);
             } else if (isSpace(symbol)) {
@@ -558,7 +569,9 @@ class Automata {
          */
         [STATE.NODE_ATTR_VALUE_START](symbol: number) {
             if (symbol == CHAR_QUOTATION_DOUBLE) {
-                this.state = STATE.NODE_ATTR_VALUE_BODY;
+                this.state = STATE.NODE_ATTR_VALUE_BODY_DOUBLE_QUOTATION;
+            } else if (symbol == CHAR_QUOTATION_SINGLE) {
+                this.state = STATE.NODE_ATTR_VALUE_BODY_SINGLE_QUOTATION;
             } else throw new SyntaxError(`unexpected symbol (${String.fromCharCode(symbol)})`);
         },
 
@@ -567,8 +580,24 @@ class Automata {
          * ```<!meta a="```
          * ```</name a="```
          */
-        [STATE.NODE_ATTR_VALUE_BODY](symbol: number) {
+        [STATE.NODE_ATTR_VALUE_BODY_DOUBLE_QUOTATION](symbol: number) {
             if (symbol == CHAR_QUOTATION_DOUBLE) {
+                this.state = STATE.NODE_BODY;
+
+                console.log("NODE_ATTR_VALUE:", String.fromCharCode(...this.buffer));
+                this.buffer.length = 0;
+            } else {
+                this.buffer.push(symbol);
+            }
+        },
+
+        /**
+         * ```<name a='```
+         * ```<!meta a='```
+         * ```</name a='```
+         */
+        [STATE.NODE_ATTR_VALUE_BODY_SINGLE_QUOTATION](symbol: number) {
+            if (symbol == CHAR_QUOTATION_SINGLE) {
                 this.state = STATE.NODE_BODY;
 
                 console.log("NODE_ATTR_VALUE:", String.fromCharCode(...this.buffer));
