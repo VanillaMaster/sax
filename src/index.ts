@@ -1,47 +1,39 @@
 import sample from "./sample.js";
 
-/**
- * ```>```
- */
-const CHAR_GREATER = ">".charCodeAt(0);
-/**
- * ```<```
- */
-const CHAR_LESS = "<".charCodeAt(0);
-/**
- * ```=```
- */
-const CHAR_EQUAL = "=".charCodeAt(0);
-/**
- * ```!```
- */
-const CHAR_EXCLAMATION_MARK = "!".charCodeAt(0);
-/**
- * ```"```
- */
-const CHAR_QUOTATION_DOUBLE = '"'.charCodeAt(0);
-/**
- * ```/```
- */
-const CHAR_SLASH = "/".charCodeAt(0);
-/**
- * ```-```
- */
-const CHAR_MINUS = "-".charCodeAt(0);
-
-
-
-const CHAR_A_UPPER = "A".charCodeAt(0);
-const CHAR_Z_UPPER = "Z".charCodeAt(0);
-const CHAR_A_LOWER = "a".charCodeAt(0);
-const CHAR_Z_LOWER = "z".charCodeAt(0);
+/** ```>``` */
+const CHAR_GREATER = 62;//">".charCodeAt(0);
+/** ```<``` */
+const CHAR_LESS = 60;//"<".charCodeAt(0);
+/** ```=``` */
+const CHAR_EQUAL = 61;//"=".charCodeAt(0);
+/** ```!``` */
+const CHAR_EXCLAMATION_MARK = 33;//"!".charCodeAt(0);
+/** ```"``` */
+const CHAR_QUOTATION_DOUBLE = 34;//'"'.charCodeAt(0);
+/** ```/``` */
+const CHAR_SLASH = 47;//"/".charCodeAt(0);
+/** ```-``` */
+const CHAR_MINUS = 45;//"-".charCodeAt(0);
+/** ```A``` */
+const CHAR_A_UPPER = 65;//"A".charCodeAt(0);
+/** ```Z``` */
+const CHAR_Z_UPPER = 90;//"Z".charCodeAt(0);
+/** ```a``` */
+const CHAR_A_LOWER = 97;//"a".charCodeAt(0);
+/** ```z``` */
+const CHAR_Z_LOWER = 122;//"z".charCodeAt(0);
+/** ```0``` */
+const CHAR_0 = 48;//"0".charCodeAt(0);
+/** ```9``` */
+const CHAR_9 = 57;//"9".charCodeAt(0);
+/** ``` ``` */
+const CHAR_SPACE = 32;//" ".charCodeAt(0);
+/** ```\n``` */
+const CHAR_NEW_LINE = 10;//"\n".charCodeAt(0);
 
 function isLetter(char: number) {
     return (CHAR_A_UPPER <= char && char <= CHAR_Z_UPPER) || (CHAR_A_LOWER <= char && char <= CHAR_Z_LOWER);
 }
-
-const CHAR_0 = "0".charCodeAt(0);
-const CHAR_9 = "9".charCodeAt(0);
 
 function isDigit(char: number) {
     return CHAR_0 <= char && char <= CHAR_9;
@@ -50,9 +42,6 @@ function isDigit(char: number) {
 function isAlphanumeric(char: number) {
     return isLetter(char) || isDigit(char) || char == CHAR_MINUS;
 }
-
-const CHAR_SPACE = " ".charCodeAt(0);
-const CHAR_NEW_LINE = "\n".charCodeAt(0);
 
 function isSpace(char: number) {
     return char == CHAR_SPACE || char == CHAR_NEW_LINE;
@@ -71,7 +60,6 @@ enum STATE {
     COMMENT_NODE_BODY = "COMMENT_NODE_BODY",
     COMMENT_NODE_END_1 = "COMMENT_NODE_END_1",
     COMMENT_NODE_END_2 = "COMMENT_NODE_END_2",
-    // COMMENT_NODE_2 = "COMMENT_NODE_2",
 
     NODE_NAME = "NODE_NAME",
     NODE_BODY = "NODE_BODY",
@@ -85,10 +73,10 @@ enum STATE {
 class Automata {
     constructor() { }
 
-    state: STATE = STATE.NONE;
+    private state: STATE = STATE.NONE;
 
     private buffer: number[] = [];
-    
+
     private static stateBinding: Record<STATE, ((this: Automata, symbol: number) => void)> = {
         /**
          * ``` ```
@@ -106,7 +94,7 @@ class Automata {
                 this.buffer.push(symbol)
             }
         },
-        
+
         /**
          * ```<```
          */
@@ -114,23 +102,25 @@ class Automata {
             if (symbol == CHAR_SLASH) {
                 this.state = STATE.CLOSING_NODE
             } else if (symbol == CHAR_EXCLAMATION_MARK) {
-                this.state = STATE.META_NODE;                        
+                this.state = STATE.META_NODE;
             } else if (isLetter(symbol)) {
                 this.state = STATE.NODE_NAME;
 
                 this.buffer.push(symbol);
+                console.log("OPENING_NODE");
             } else throw new Error(`unexpected symbol (${String.fromCharCode(symbol)})`);
         },
 
         /**
          * ```<!```
          */
-        [STATE.META_NODE](symbol: number){
+        [STATE.META_NODE](symbol: number) {
             if (symbol == CHAR_MINUS) {
                 this.state = STATE.COMMENT_NODE;
             } else if (isLetter(symbol)) {
                 this.state = STATE.NODE_NAME;
 
+                console.log("META_NODE");
                 this.buffer.push(symbol);
             } else throw new SyntaxError(`unexpected symbol (${String.fromCharCode(symbol)})`);
         },
@@ -141,6 +131,8 @@ class Automata {
         [STATE.CLOSING_NODE](symbol: number) {
             if (isLetter(symbol)) {
                 this.state = STATE.NODE_NAME;
+
+                console.log("CLOSING_NODE");
                 this.buffer.push(symbol);
             } else throw new SyntaxError(`unexpected symbol (${String.fromCharCode(symbol)})`);
         },
@@ -151,6 +143,8 @@ class Automata {
         [STATE.COMMENT_NODE](symbol: number) {
             if (symbol == CHAR_MINUS) {
                 this.state = STATE.COMMENT_NODE_BODY;
+
+                console.log("COMMENT_START");
             } else throw new SyntaxError(`unexpected symbol (${String.fromCharCode(symbol)})`);
         },
 
@@ -193,13 +187,14 @@ class Automata {
                 this.buffer.length -= 2;
                 console.log("COMMENT_NODE:", String.fromCharCode(...this.buffer));
                 this.buffer.length = 0;
+                console.log("COMMENT_END");
             } else if (symbol = CHAR_MINUS) {
                 this.state = STATE.COMMENT_NODE_END_2;
 
                 this.buffer.push(symbol);
             } else {
                 this.state = STATE.COMMENT_NODE_BODY;
-                
+
                 this.buffer.push(symbol);
             }
         },
@@ -236,7 +231,7 @@ class Automata {
                 this.state = STATE.NONE;
             } else if (isLetter(symbol)) {
                 this.state = STATE.NODE_ATTR_NAME;
-                
+
                 this.buffer.push(symbol);
             } else if (isSpace(symbol)) {
                 //ok
@@ -269,7 +264,7 @@ class Automata {
                 this.buffer.length = 0;
             } else throw new SyntaxError(`unexpected symbol (${String.fromCharCode(symbol)})`);
         },
-        
+
         /**
          * ```<name a=```
          * ```<!meta a=```
