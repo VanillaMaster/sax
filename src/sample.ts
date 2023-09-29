@@ -27,6 +27,10 @@ export default `
        }
     
     </script>
+
+    <style>
+       "</style"
+    </style>
 </head>
 <body>
     <!-- asd -->

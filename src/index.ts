@@ -44,6 +44,12 @@ const CHAR_I_LOWER = "i".charCodeAt(0);
 const CHAR_P_LOWER = "p".charCodeAt(0);
 /** ```t``` */
 const CHAR_T_LOWER = "t".charCodeAt(0);
+/** ```y``` */
+const CHAR_Y_LOWER = "y".charCodeAt(0);
+/** ```l``` */
+const CHAR_L_LOWER = "l".charCodeAt(0);
+/** ```e``` */
+const CHAR_E_LOWER = "e".charCodeAt(0);
 
 function isLetter(char: number) {
     return (CHAR_A_UPPER <= char && char <= CHAR_Z_UPPER) || (CHAR_A_LOWER <= char && char <= CHAR_Z_LOWER);
@@ -82,32 +88,58 @@ enum STATE {
     COMMENT_NODE_END_1 = "COMMENT_NODE_END_1",
     COMMENT_NODE_END_2 = "COMMENT_NODE_END_2",
 
-    NODE_START_SCRIPT_1 = "NODE_START_SCRIPT_1",
+    NODE_START_SCRIPT_OR_STYLE_1 = "NODE_START_SCRIPT_OR_STYLE_1",
+
     NODE_START_SCRIPT_2 = "NODE_START_SCRIPT_2",
     NODE_START_SCRIPT_3 = "NODE_START_SCRIPT_3",
     NODE_START_SCRIPT_4 = "NODE_START_SCRIPT_4",
     NODE_START_SCRIPT_5 = "NODE_START_SCRIPT_5",
     NODE_START_SCRIPT_6 = "NODE_START_SCRIPT_6",
+
+    NODE_START_STYLE_2 = "NODE_START_STYLE_2",
+    NODE_START_STYLE_3 = "NODE_START_STYLE_3",
+    NODE_START_STYLE_4 = "NODE_START_STYLE_4",
+    NODE_START_STYLE_5 = "NODE_START_STYLE_5",
+    
     
     NODE_SCRIPT_BODY = "NODE_SCRIPT_BODY",
+
+    NODE_STYLE_BODY = "NODE_STYLE_BODY",
+
 
     NODE_SCRIPT_ATTR_NAME = "NODE_SCRIPT_ATTR_NAME",
     NODE_SCRIPT_ATTR_VALUE_START = "NODE_SCRIPT_ATTR_VALUE_START",
     NODE_SCRIPT_ATTR_VALUE_BODY_DOUBLE_QUOTATION = "NODE_SCRIPT_ATTR_VALUE_BODY_DOUBLE_QUOTATION",
     NODE_SCRIPT_ATTR_VALUE_BODY_SINGLE_QUOTATION = "NODE_SCRIPT_ATTR_VALUE_BODY_SINGLE_QUOTATION",
 
-    SCRIPT_BODY = "SCRIPT_BODY",
-    
-    NODE_END_SCRIPT_1 = "NODE_END_SCRIPT_1",
-    NODE_END_SCRIPT_2 = "NODE_END_SCRIPT_2",
-    NODE_END_SCRIPT_3 = "NODE_END_SCRIPT_3",
-    NODE_END_SCRIPT_4 = "NODE_END_SCRIPT_4",
-    NODE_END_SCRIPT_5 = "NODE_END_SCRIPT_5",
-    NODE_END_SCRIPT_6 = "NODE_END_SCRIPT_6",
-    NODE_END_SCRIPT_7 = "NODE_END_SCRIPT_7",
-    NODE_END_SCRIPT_8 = "NODE_END_SCRIPT_8",
+    NODE_STYLE_ATTR_NAME = "NODE_STYLE_ATTR_NAME",
+    NODE_STYLE_ATTR_VALUE_START = "NODE_STYLE_ATTR_VALUE_START",
+    NODE_STYLE_ATTR_VALUE_BODY_DOUBLE_QUOTATION = "NODE_STYLE_ATTR_VALUE_BODY_DOUBLE_QUOTATION",
+    NODE_STYLE_ATTR_VALUE_BODY_SINGLE_QUOTATION = "NODE_STYLE_ATTR_VALUE_BODY_SINGLE_QUOTATION",
 
-    //
+
+    SCRIPT_BODY = "SCRIPT_BODY",
+
+    STYLE_BODY = "STYLE_BODY",
+    
+
+    NODE_END_SCRIPT_1 = "NODE_END_SCRIPT_1", //<
+    NODE_END_SCRIPT_2 = "NODE_END_SCRIPT_2", //</
+    NODE_END_SCRIPT_3 = "NODE_END_SCRIPT_3", //</s
+    NODE_END_SCRIPT_4 = "NODE_END_SCRIPT_4", //</sc
+    NODE_END_SCRIPT_5 = "NODE_END_SCRIPT_5", //</scr
+    NODE_END_SCRIPT_6 = "NODE_END_SCRIPT_6", //</scri
+    NODE_END_SCRIPT_7 = "NODE_END_SCRIPT_7", //</scrip
+    NODE_END_SCRIPT_8 = "NODE_END_SCRIPT_8", //</script
+
+    NODE_END_STYLE_1 = "NODE_END_STYLE_1", //<
+    NODE_END_STYLE_2 = "NODE_END_STYLE_2", //</
+    NODE_END_STYLE_3 = "NODE_END_STYLE_3", //</s
+    NODE_END_STYLE_4 = "NODE_END_STYLE_4", //</st
+    NODE_END_STYLE_5 = "NODE_END_STYLE_5", //</sty
+    NODE_END_STYLE_6 = "NODE_END_STYLE_6", //</styl
+    NODE_END_STYLE_7 = "NODE_END_STYLE_7", //</style
+
 
     NODE_NAME = "NODE_NAME",
     NODE_BODY = "NODE_BODY",
@@ -155,7 +187,7 @@ class Automata {
             } else if (symbol == CHAR_EXCLAMATION_MARK) {
                 this.state = STATE.META_NODE;
             } else if (symbol == CHAR_S_LOWER) {
-                this.state = STATE.NODE_START_SCRIPT_1;
+                this.state = STATE.NODE_START_SCRIPT_OR_STYLE_1;
 
                 this.buffer.push(symbol);
                 console.log("OPENING_NODE");
@@ -170,9 +202,13 @@ class Automata {
         /**
          * ```<s```
          */
-        [STATE.NODE_START_SCRIPT_1](symbol: number) {
+        [STATE.NODE_START_SCRIPT_OR_STYLE_1](symbol: number) {
             if (symbol == CHAR_C_LOWER) {
                 this.state = STATE.NODE_START_SCRIPT_2;
+
+                this.buffer.push(symbol);
+            } else if (symbol == CHAR_T_LOWER) {
+                this.state = STATE.NODE_START_STYLE_2;
 
                 this.buffer.push(symbol);
             } else Automata.stateBinding[STATE.NODE_NAME].call(this, symbol);
@@ -409,7 +445,218 @@ class Automata {
 
                 this.buffer.push(symbol);
             }
-        },        
+        },
+
+        /**
+         * ```<st```
+         */
+        [STATE.NODE_START_STYLE_2](symbol: number) {
+            if (symbol == CHAR_Y_LOWER) {
+                this.state = STATE.NODE_START_STYLE_3;
+
+                this.buffer.push(symbol);
+            } else Automata.stateBinding[STATE.NODE_NAME].call(this, symbol);
+        },
+
+        /**
+         * ```<sty```
+         */
+        [STATE.NODE_START_STYLE_3](symbol: number) {
+            if (symbol == CHAR_L_LOWER) {
+                this.state = STATE.NODE_START_STYLE_4;
+
+                this.buffer.push(symbol);
+            } else Automata.stateBinding[STATE.NODE_NAME].call(this, symbol);
+        },
+
+        /**
+         * ```<styl```
+         */
+        [STATE.NODE_START_STYLE_4](symbol: number) {
+            if (symbol == CHAR_E_LOWER) {
+                this.state = STATE.NODE_START_STYLE_5;
+
+                this.buffer.push(symbol);
+            } else Automata.stateBinding[STATE.NODE_NAME].call(this, symbol);
+        },
+
+        /**
+         * ```<style```
+         */
+        [STATE.NODE_START_STYLE_5](symbol: number) {
+            if (isSpace(symbol)) {
+                this.state = STATE.NODE_STYLE_BODY;
+                
+                console.log("STYLE");
+                this.buffer.length = 0;
+            } else if (symbol == CHAR_GREATER) {
+                this.state = STATE.STYLE_BODY;
+
+                console.log("STYLE");
+                this.buffer.length = 0;
+            } else Automata.stateBinding[STATE.NODE_NAME].call(this, symbol);
+        },
+
+        [STATE.NODE_STYLE_BODY](symbol: number) {
+            if (symbol == CHAR_GREATER) {
+                this.state = STATE.STYLE_BODY;
+            } else if (isLetter(symbol)) {
+                this.state = STATE.NODE_STYLE_ATTR_NAME;
+
+                this.buffer.push(symbol);
+            } else if (isSpace(symbol)) {
+                //ok
+            } else throw new SyntaxError(`unexpected symbol (${String.fromCharCode(symbol)})`);
+        },
+
+        [STATE.NODE_STYLE_ATTR_NAME](symbol: number){
+            if (isAlphanumeric(symbol)) {
+                //ok
+                this.buffer.push(symbol);
+            } else if (symbol == CHAR_EQUAL) {
+                this.state = STATE.NODE_STYLE_ATTR_VALUE_START;
+
+                console.log("NODE_ATTR_NAME:", String.fromCharCode(...this.buffer));
+                this.buffer.length = 0;
+            } else if (isSpace(symbol)) {
+                this.state = STATE.NODE_STYLE_BODY;
+
+                console.log("NODE_ATTR_NAME:", String.fromCharCode(...this.buffer));
+                this.buffer.length = 0;
+            } else if (symbol == CHAR_GREATER) {
+                this.state = STATE.STYLE_BODY;
+
+                console.log("NODE_ATTR_NAME:", String.fromCharCode(...this.buffer));
+                this.buffer.length = 0;
+            } else throw new SyntaxError(`unexpected symbol (${String.fromCharCode(symbol)})`);
+        },
+
+        [STATE.NODE_STYLE_ATTR_VALUE_START](symbol: number) {
+            if (symbol == CHAR_QUOTATION_DOUBLE) {
+                this.state = STATE.NODE_STYLE_ATTR_VALUE_BODY_DOUBLE_QUOTATION;
+            } else if (symbol == CHAR_QUOTATION_SINGLE) {
+                this.state = STATE.NODE_STYLE_ATTR_VALUE_BODY_SINGLE_QUOTATION;
+            } else throw new SyntaxError(`unexpected symbol (${String.fromCharCode(symbol)})`);
+        },
+
+        [STATE.NODE_STYLE_ATTR_VALUE_BODY_DOUBLE_QUOTATION](symbol: number) {
+            if (symbol == CHAR_QUOTATION_DOUBLE) {
+                this.state = STATE.NODE_STYLE_BODY;
+
+                console.log("NODE_ATTR_VALUE:", String.fromCharCode(...this.buffer));
+                this.buffer.length = 0;
+            } else {
+                this.buffer.push(symbol);
+            }
+        },
+        [STATE.NODE_STYLE_ATTR_VALUE_BODY_SINGLE_QUOTATION](symbol: number) {
+            if (symbol == CHAR_QUOTATION_SINGLE) {
+                this.state = STATE.NODE_STYLE_BODY;
+
+                console.log("NODE_ATTR_VALUE:", String.fromCharCode(...this.buffer));
+                this.buffer.length = 0;
+            } else {
+                this.buffer.push(symbol);
+            }
+        },
+        
+        [STATE.STYLE_BODY](symbol: number) {
+            if (symbol == CHAR_LESS) {
+                this.state = STATE.NODE_END_STYLE_1;
+
+                this.buffer.push(symbol);
+            } else {
+                //ok
+                this.buffer.push(symbol);
+            }
+        },
+
+        [STATE.NODE_END_STYLE_1](symbol: number){
+            if (symbol == CHAR_SLASH) {
+                this.state = STATE.NODE_END_STYLE_2;
+
+                this.buffer.push(symbol);
+            } else {
+                this.state = STATE.STYLE_BODY;
+
+                this.buffer.push(symbol);
+            }
+        },
+
+        [STATE.NODE_END_STYLE_2](symbol: number){
+            if (symbol == CHAR_S_LOWER) {
+                this.state = STATE.NODE_END_STYLE_3;
+
+                this.buffer.push(symbol);
+            } else {
+                this.state = STATE.STYLE_BODY;
+
+                this.buffer.push(symbol);
+            }
+        },
+
+        [STATE.NODE_END_STYLE_3](symbol: number){
+            if (symbol == CHAR_T_LOWER) {
+                this.state = STATE.NODE_END_STYLE_4;
+
+                this.buffer.push(symbol);
+            } else {
+                this.state = STATE.STYLE_BODY;
+
+                this.buffer.push(symbol);
+            }
+        },
+
+
+        [STATE.NODE_END_STYLE_4](symbol: number){
+            if (symbol == CHAR_Y_LOWER) {
+                this.state = STATE.NODE_END_STYLE_5;
+
+                this.buffer.push(symbol);
+            } else {
+                this.state = STATE.STYLE_BODY;
+
+                this.buffer.push(symbol);
+            }
+        },
+
+        [STATE.NODE_END_STYLE_5](symbol: number){
+            if (symbol == CHAR_L_LOWER) {
+                this.state = STATE.NODE_END_STYLE_6;
+
+                this.buffer.push(symbol);
+            } else {
+                this.state = STATE.STYLE_BODY;
+
+                this.buffer.push(symbol);
+            }
+        },
+
+        [STATE.NODE_END_STYLE_6](symbol: number){
+            if (symbol == CHAR_E_LOWER) {
+                this.state = STATE.NODE_END_STYLE_7;
+
+                this.buffer.push(symbol);
+            } else {
+                this.state = STATE.STYLE_BODY;
+
+                this.buffer.push(symbol);
+            }
+        },
+
+        [STATE.NODE_END_STYLE_7](symbol: number){
+            if (symbol == CHAR_GREATER) {
+                this.state = STATE.NONE;
+
+                this.buffer.length -= 7;
+                console.log("STYLE:", String.fromCharCode(...this.buffer));
+                this.buffer.length = 0;
+            } else {
+                this.state = STATE.STYLE_BODY;
+
+                this.buffer.push(symbol);
+            }
+        },
 
         /**
          * ```<!```
@@ -648,8 +895,10 @@ class Automata {
     }
 }
 
-import { readFile } from "node:fs/promises";
-const sample = await readFile("C:/Downloads/1.html", "utf-8");
+// import { readFile } from "node:fs/promises";
+// const sample = await readFile("C:/Downloads/1.html", "utf-8");
+import sample from "./sample.js";
+
 // console.log(sample);
 
 const a = new Automata();
