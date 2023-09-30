@@ -26,91 +26,29 @@ import {
 } from "./guard.js";
 
 import { STATE } from "./state.js"
+import { NODE } from "./node.js";
 
-type attrEntry = [attr: string, value?: string];
+export interface NodeBuilder {
+    setType(type: NODE): void;
+    updateType(type: NODE): void;
+    setName(name: string): void;
+    setBody(body: string): void;
+    setAttrName(name: string): void;
+    setAttrValue(value: string): void;
 
-interface BASE_NODE {
-    type: string;
-    attributes: attrEntry[];
+    finalize(): void;
 }
-interface OPENING_NODE extends BASE_NODE {
-    type: "OPENING_NODE";
-    name: string;
-}
-interface CLOSING_NODE extends BASE_NODE {
-    type: "CLOSING_NODE";
-    name: string;
-}
-interface SELF_CLOSING_NODE extends BASE_NODE {
-    type: "SELF_CLOSING_NODE";
-    name: string;
-}
-interface META_NODE extends BASE_NODE {
-    type: "META_NODE";
-    name: string;
-}
-interface SCRIPT_NODE extends BASE_NODE {
-    type: "SCRIPT_NODE";
-    body: string;
-}
-interface STYLE_NODE extends BASE_NODE {
-    type: "STYLE_NODE";
-    body: string;
-}
-interface COMMENT_NODE extends BASE_NODE {
-    type: "COMMENT_NODE";
-    body: string;
-}
-interface TEXT_NODE extends BASE_NODE {
-    type: "TEXT_NODE"
-    body: string;
-}
-
-type node = OPENING_NODE | CLOSING_NODE | META_NODE | SCRIPT_NODE | STYLE_NODE | COMMENT_NODE | TEXT_NODE | SELF_CLOSING_NODE;
-type nodeType = node["type"];
 
 export class Automata {
-    constructor() { }
+    constructor(builder: NodeBuilder) {
+        this.builder = builder;
+    }
 
     private state: STATE = STATE.NONE;
 
     private buffer: number[] = [];
 
-    private node?: node;
-
-    setType(type: nodeType) {
-        // console.log(type);
-        if (this.node) {
-            console.log(JSON.stringify(this.node));
-        }
-        this.node = {
-            type,
-        } as any;
-    }
-
-    setName(name: string) {
-        // console.log(name);
-        //@ts-ignore
-        this.node.name = name;
-    }
-
-    setBody(body: string) {
-        // console.log(body);
-        //@ts-ignore
-        this.node.body = body;
-    }
-
-    setAttrName(name: string) {
-        // console.log(name);
-        //@ts-ignore
-        (this.node.attributes ?? (this.node.attributes = [])).push([name]);
-    }
-
-    setAttrValue(value: string) {
-        // console.log(value);
-        //@ts-ignore
-        this.node.attributes[this.node.attributes.length - 1][1] = value;
-    }
+    private builder: NodeBuilder;
 
     private static readonly stateBinding: Record<STATE, ((this: Automata, symbol: number) => void)> = {
         /**
@@ -143,13 +81,13 @@ export class Automata {
 
                 this.buffer.push(symbol);
                 // console.log("OPENING_NODE");
-                this.setType("OPENING_NODE");
+                // this.setType("OPENING_NODE");
             } else if (isLetter(symbol)) {
                 this.state = STATE.NODE_NAME;
 
                 this.buffer.push(symbol);
                 // console.log("OPENING_NODE");
-                this.setType("OPENING_NODE");
+                this.builder.setType(NODE.OPENING);
             } else throw new Error(`unexpected symbol (${String.fromCharCode(symbol)})`);
         },
 
@@ -165,7 +103,10 @@ export class Automata {
                 this.state = STATE.NODE_START_STYLE_2;
 
                 this.buffer.push(symbol);
-            } else Automata.stateBinding[STATE.NODE_NAME].call(this, symbol);
+            } else {
+                this.builder.setType(NODE.OPENING);
+                Automata.stateBinding[STATE.NODE_NAME].call(this, symbol);
+            }
         },
 
         /**
@@ -176,7 +117,10 @@ export class Automata {
                 this.state = STATE.NODE_START_SCRIPT_3;
 
                 this.buffer.push(symbol);
-            } else Automata.stateBinding[STATE.NODE_NAME].call(this, symbol);
+            } else {
+                this.builder.setType(NODE.OPENING);
+                Automata.stateBinding[STATE.NODE_NAME].call(this, symbol);
+            }
         },
 
         /**
@@ -187,7 +131,10 @@ export class Automata {
                 this.state = STATE.NODE_START_SCRIPT_4;
 
                 this.buffer.push(symbol);
-            } else Automata.stateBinding[STATE.NODE_NAME].call(this, symbol);
+            } else {
+                this.builder.setType(NODE.OPENING);
+                Automata.stateBinding[STATE.NODE_NAME].call(this, symbol);
+            }
         },
 
         /**
@@ -198,7 +145,10 @@ export class Automata {
                 this.state = STATE.NODE_START_SCRIPT_5;
 
                 this.buffer.push(symbol);
-            } else Automata.stateBinding[STATE.NODE_NAME].call(this, symbol);
+            } else {
+                this.builder.setType(NODE.OPENING);
+                Automata.stateBinding[STATE.NODE_NAME].call(this, symbol);
+            }
         },
 
         /**
@@ -209,7 +159,10 @@ export class Automata {
                 this.state = STATE.NODE_START_SCRIPT_6;
 
                 this.buffer.push(symbol);
-            } else Automata.stateBinding[STATE.NODE_NAME].call(this, symbol);
+            } else {
+                this.builder.setType(NODE.OPENING);
+                Automata.stateBinding[STATE.NODE_NAME].call(this, symbol);
+            }
         },
 
         /**
@@ -220,15 +173,18 @@ export class Automata {
                 this.state = STATE.NODE_SCRIPT_BODY;
 
                 // console.log("SCRIPT");
-                this.setType("SCRIPT_NODE");
+                this.builder.setType(NODE.SCRIPT);
                 this.buffer.length = 0;
             } else if (symbol == CHAR_GREATER) {
                 this.state = STATE.SCRIPT_BODY;
 
                 // console.log("SCRIPT");
-                this.setType("SCRIPT_NODE");
+                this.builder.setType(NODE.SCRIPT);
                 this.buffer.length = 0;
-            } else Automata.stateBinding[STATE.NODE_NAME].call(this, symbol);
+            } else {
+                this.builder.setType(NODE.OPENING);
+                Automata.stateBinding[STATE.NODE_NAME].call(this, symbol);
+            }
         },
 
         [STATE.NODE_SCRIPT_BODY](symbol: number) {
@@ -251,19 +207,19 @@ export class Automata {
                 this.state = STATE.NODE_SCRIPT_ATTR_VALUE_START;
 
                 // console.log("NODE_ATTR_NAME:", String.fromCharCode(...this.buffer));
-                this.setAttrName(String.fromCharCode(...this.buffer));
+                this.builder.setAttrName(String.fromCharCode(...this.buffer));
                 this.buffer.length = 0;
             } else if (isSpace(symbol)) {
                 this.state = STATE.NODE_SCRIPT_BODY;
 
                 // console.log("NODE_ATTR_NAME:", String.fromCharCode(...this.buffer));
-                this.setAttrName(String.fromCharCode(...this.buffer));
+                this.builder.setAttrName(String.fromCharCode(...this.buffer));
                 this.buffer.length = 0;
             } else if (symbol == CHAR_GREATER) {
                 this.state = STATE.SCRIPT_BODY;
 
                 // console.log("NODE_ATTR_NAME:", String.fromCharCode(...this.buffer));
-                this.setAttrName(String.fromCharCode(...this.buffer));
+                this.builder.setAttrName(String.fromCharCode(...this.buffer));
                 this.buffer.length = 0;
             } else throw new SyntaxError(`unexpected symbol (${String.fromCharCode(symbol)})`);
         },
@@ -281,7 +237,7 @@ export class Automata {
                 this.state = STATE.NODE_SCRIPT_BODY;
 
                 // console.log("NODE_ATTR_VALUE:", String.fromCharCode(...this.buffer));
-                this.setAttrValue(String.fromCharCode(...this.buffer));
+                this.builder.setAttrValue(String.fromCharCode(...this.buffer));
                 this.buffer.length = 0;
             } else {
                 this.buffer.push(symbol);
@@ -292,7 +248,7 @@ export class Automata {
                 this.state = STATE.NODE_SCRIPT_BODY;
 
                 // console.log("NODE_ATTR_VALUE:", String.fromCharCode(...this.buffer));
-                this.setAttrValue(String.fromCharCode(...this.buffer));
+                this.builder.setAttrValue(String.fromCharCode(...this.buffer));
                 this.buffer.length = 0;
             } else {
                 this.buffer.push(symbol);
@@ -400,7 +356,7 @@ export class Automata {
 
                 this.buffer.length -= 8;
                 // console.log("SCRIPT:", String.fromCharCode(...this.buffer));
-                this.setBody(String.fromCharCode(...this.buffer));
+                this.builder.setBody(String.fromCharCode(...this.buffer));
                 this.buffer.length = 0;
             } else {
                 this.state = STATE.SCRIPT_BODY;
@@ -417,7 +373,10 @@ export class Automata {
                 this.state = STATE.NODE_START_STYLE_3;
 
                 this.buffer.push(symbol);
-            } else Automata.stateBinding[STATE.NODE_NAME].call(this, symbol);
+            } else {
+                this.builder.setType(NODE.OPENING);
+                Automata.stateBinding[STATE.NODE_NAME].call(this, symbol);
+            }
         },
 
         /**
@@ -428,7 +387,10 @@ export class Automata {
                 this.state = STATE.NODE_START_STYLE_4;
 
                 this.buffer.push(symbol);
-            } else Automata.stateBinding[STATE.NODE_NAME].call(this, symbol);
+            } else {
+                this.builder.setType(NODE.OPENING);
+                Automata.stateBinding[STATE.NODE_NAME].call(this, symbol);
+            }
         },
 
         /**
@@ -439,7 +401,10 @@ export class Automata {
                 this.state = STATE.NODE_START_STYLE_5;
 
                 this.buffer.push(symbol);
-            } else Automata.stateBinding[STATE.NODE_NAME].call(this, symbol);
+            } else {
+                this.builder.setType(NODE.OPENING);
+                Automata.stateBinding[STATE.NODE_NAME].call(this, symbol);
+            }
         },
 
         /**
@@ -450,15 +415,18 @@ export class Automata {
                 this.state = STATE.NODE_STYLE_BODY;
 
                 // console.log("STYLE");
-                this.setType("STYLE_NODE");
+                this.builder.setType(NODE.STYLE);
                 this.buffer.length = 0;
             } else if (symbol == CHAR_GREATER) {
                 this.state = STATE.STYLE_BODY;
 
                 // console.log("STYLE");
-                this.setType("STYLE_NODE");
+                this.builder.setType(NODE.STYLE);
                 this.buffer.length = 0;
-            } else Automata.stateBinding[STATE.NODE_NAME].call(this, symbol);
+            } else {
+                this.builder.setType(NODE.OPENING);
+                Automata.stateBinding[STATE.NODE_NAME].call(this, symbol);
+            }
         },
 
         [STATE.NODE_STYLE_BODY](symbol: number) {
@@ -481,19 +449,19 @@ export class Automata {
                 this.state = STATE.NODE_STYLE_ATTR_VALUE_START;
 
                 // console.log("NODE_ATTR_NAME:", String.fromCharCode(...this.buffer));
-                this.setAttrName(String.fromCharCode(...this.buffer));
+                this.builder.setAttrName(String.fromCharCode(...this.buffer));
                 this.buffer.length = 0;
             } else if (isSpace(symbol)) {
                 this.state = STATE.NODE_STYLE_BODY;
 
                 // console.log("NODE_ATTR_NAME:", String.fromCharCode(...this.buffer));
-                this.setAttrName(String.fromCharCode(...this.buffer));
+                this.builder.setAttrName(String.fromCharCode(...this.buffer));
                 this.buffer.length = 0;
             } else if (symbol == CHAR_GREATER) {
                 this.state = STATE.STYLE_BODY;
 
                 // console.log("NODE_ATTR_NAME:", String.fromCharCode(...this.buffer));
-                this.setAttrName(String.fromCharCode(...this.buffer));
+                this.builder.setAttrName(String.fromCharCode(...this.buffer));
                 this.buffer.length = 0;
             } else throw new SyntaxError(`unexpected symbol (${String.fromCharCode(symbol)})`);
         },
@@ -511,7 +479,7 @@ export class Automata {
                 this.state = STATE.NODE_STYLE_BODY;
 
                 // console.log("NODE_ATTR_VALUE:", String.fromCharCode(...this.buffer));
-                this.setAttrValue(String.fromCharCode(...this.buffer))
+                this.builder.setAttrValue(String.fromCharCode(...this.buffer))
                 this.buffer.length = 0;
             } else {
                 this.buffer.push(symbol);
@@ -522,7 +490,7 @@ export class Automata {
                 this.state = STATE.NODE_STYLE_BODY;
 
                 // console.log("NODE_ATTR_VALUE:", String.fromCharCode(...this.buffer));
-                this.setAttrValue(String.fromCharCode(...this.buffer))
+                this.builder.setAttrValue(String.fromCharCode(...this.buffer))
                 this.buffer.length = 0;
             } else {
                 this.buffer.push(symbol);
@@ -619,7 +587,7 @@ export class Automata {
 
                 this.buffer.length -= 7;
                 // console.log("STYLE:", String.fromCharCode(...this.buffer));
-                this.setBody(String.fromCharCode(...this.buffer));
+                this.builder.setBody(String.fromCharCode(...this.buffer));
                 this.buffer.length = 0;
             } else {
                 this.state = STATE.STYLE_BODY;
@@ -638,7 +606,7 @@ export class Automata {
                 this.state = STATE.NODE_NAME;
 
                 // console.log("META_NODE");
-                this.setType("META_NODE");
+                this.builder.setType(NODE.META);
                 this.buffer.push(symbol);
             } else throw new SyntaxError(`unexpected symbol (${String.fromCharCode(symbol)})`);
         },
@@ -651,7 +619,7 @@ export class Automata {
                 this.state = STATE.NODE_NAME;
 
                 // console.log("CLOSING_NODE");
-                this.setType("CLOSING_NODE");
+                this.builder.setType(NODE.CLOSING);
                 this.buffer.push(symbol);
             } else throw new SyntaxError(`unexpected symbol (${String.fromCharCode(symbol)})`);
         },
@@ -664,7 +632,7 @@ export class Automata {
                 this.state = STATE.COMMENT_NODE_BODY;
 
                 // console.log("COMMENT_START");
-                this.setType("COMMENT_NODE");
+                this.builder.setType(NODE.COMMENT);
             } else throw new SyntaxError(`unexpected symbol (${String.fromCharCode(symbol)})`);
         },
 
@@ -706,7 +674,7 @@ export class Automata {
 
                 this.buffer.length -= 2;
                 // console.log("COMMENT_NODE:", String.fromCharCode(...this.buffer));
-                this.setBody(String.fromCharCode(...this.buffer));
+                this.builder.setBody(String.fromCharCode(...this.buffer));
                 this.buffer.length = 0;
                 // console.log("COMMENT_END");
             } else if (symbol = CHAR_MINUS) {
@@ -733,13 +701,13 @@ export class Automata {
                 this.state = STATE.NODE_BODY;
 
                 // console.log("NODE_NAME:", String.fromCharCode(...this.buffer));
-                this.setName(String.fromCharCode(...this.buffer));
+                this.builder.setName(String.fromCharCode(...this.buffer));
                 this.buffer.length = 0;
             } else if (symbol == CHAR_GREATER) {
                 this.state = STATE.NONE;
 
                 // console.log("NODE_NAME:", String.fromCharCode(...this.buffer));
-                this.setName(String.fromCharCode(...this.buffer));
+                this.builder.setName(String.fromCharCode(...this.buffer));
                 this.buffer.length = 0;
             } else throw new SyntaxError(`unexpected symbol (${String.fromCharCode(symbol)})`);
         },
@@ -769,7 +737,8 @@ export class Automata {
                 this.state = STATE.NONE;
 
                 // console.log("NODE_SELF_CLOSING");
-                this.setType("SELF_CLOSING_NODE");
+                // this.setType("SELF_CLOSING_NODE");
+                this.builder.updateType(NODE.SELF_CLOSING);
             } else throw new SyntaxError(`unexpected symbol (${String.fromCharCode(symbol)})`);
         },
 
@@ -786,19 +755,19 @@ export class Automata {
                 this.state = STATE.NODE_ATTR_VALUE_START;
 
                 // console.log("NODE_ATTR_NAME:", String.fromCharCode(...this.buffer));
-                this.setAttrName(String.fromCharCode(...this.buffer));
+                this.builder.setAttrName(String.fromCharCode(...this.buffer));
                 this.buffer.length = 0;
             } else if (isSpace(symbol)) {
                 this.state = STATE.NODE_BODY;
 
                 // console.log("NODE_ATTR_NAME:", String.fromCharCode(...this.buffer));
-                this.setAttrName(String.fromCharCode(...this.buffer));
+                this.builder.setAttrName(String.fromCharCode(...this.buffer));
                 this.buffer.length = 0;
             } else if (symbol == CHAR_GREATER) {
                 this.state = STATE.NONE;
 
                 // console.log("NODE_ATTR_NAME:", String.fromCharCode(...this.buffer));
-                this.setAttrName(String.fromCharCode(...this.buffer));
+                this.builder.setAttrName(String.fromCharCode(...this.buffer));
                 this.buffer.length = 0;
             } else throw new SyntaxError(`unexpected symbol (${String.fromCharCode(symbol)})`);
         },
@@ -826,7 +795,7 @@ export class Automata {
                 this.state = STATE.NODE_BODY;
 
                 // console.log("NODE_ATTR_VALUE:", String.fromCharCode(...this.buffer));
-                this.setAttrValue(String.fromCharCode(...this.buffer));
+                this.builder.setAttrValue(String.fromCharCode(...this.buffer));
                 this.buffer.length = 0;
             } else {
                 this.buffer.push(symbol);
@@ -843,7 +812,7 @@ export class Automata {
                 this.state = STATE.NODE_BODY;
 
                 // console.log("NODE_ATTR_VALUE:", String.fromCharCode(...this.buffer));
-                this.setAttrValue(String.fromCharCode(...this.buffer));
+                this.builder.setAttrValue(String.fromCharCode(...this.buffer));
                 this.buffer.length = 0;
             } else {
                 this.buffer.push(symbol);
@@ -858,7 +827,8 @@ export class Automata {
                 this.state = STATE.NODE_START;
 
                 // console.log("TEXT_NODE:", String.fromCharCode(...this.buffer));
-                this.setBody(String.fromCharCode(...this.buffer));
+                this.builder.setType(NODE.TEXT);
+                this.builder.setBody(String.fromCharCode(...this.buffer));
                 this.buffer.length = 0;
             } else {
                 //ok
@@ -875,5 +845,9 @@ export class Automata {
         for (let i = 0; i < chunk.length; i++) {
             this.push(chunk.charCodeAt(i));
         }
+    }
+
+    finalize(){
+        this.builder.finalize();
     }
 }
