@@ -10,9 +10,6 @@
         "paths": {},
         "checkJs": true,
         "rootDir": ".",
-        "types": [
-            "node"
-        ]
     },
     "include": [
         "src/**/*",
