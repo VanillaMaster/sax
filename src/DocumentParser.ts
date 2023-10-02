@@ -46,7 +46,9 @@ export class DocumentParser extends EventEmitter<[Element, Element[]]> implement
             while (this.path.length > 0 && void_names.includes(this.path[this.path.length - 1].nodeName)) {
                 this.path.pop();
             }
-            if (this.path.pop()!.nodeName != node.name) throw new Error("invalid document structure");
+            const elem = this.path.pop()!; 
+            if (elem.nodeName != node.name) throw new Error("invalid document structure");
+            // elem[ARENA]?.emit(Element.ArenaEvents.disconnect)
             return;
         }
 

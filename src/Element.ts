@@ -1,8 +1,12 @@
 import { EventEmitter } from "./EventEmitter.js";
 
-export const ARENA = Symbol("node.arena");
+export const ARENA = Symbol("element.arena");
 
 export class Element {
+    static readonly ArenaEvents = {
+        disconnect: Symbol("element.atena.event.disconnect")
+    };
+
     private static attributesEmptyDummy: Record<string, string> = {};
     constructor(name: string, value: string | null = null, attributes: Record<string, string> = Element.attributesEmptyDummy) {
         this.nodeName = name;
@@ -14,7 +18,7 @@ export class Element {
     readonly nodeValue: string | null;
     readonly attributes: Record<string, string>;
 
-    [ARENA]?: EventEmitter;
+    [ARENA]?: EventEmitter<[Element, Element[]]>;
     get arena() {
         return this[ARENA] ?? (this[ARENA] = new EventEmitter());
     }

@@ -15,8 +15,15 @@ async function* read(resp: Response) {
 const parser = new DocumentParser();
 const automata = new Automata(new Builder(parser));
 
-parser.on("#comment", (elem, path) => {
-    console.log(elem.nodeValue);
+parser.on("div", (elem) => {
+    if (elem.attributes.class == "shortstoryContent") {
+        elem.arena.on("p", (elem) => {
+            elem.arena.on("#text", (elem) => {
+                console.log(elem.nodeValue);
+            })
+        })
+    }
+    // console.log(elem.nodeValue);
 });
 
 const decoder = new TextDecoder("utf8")
