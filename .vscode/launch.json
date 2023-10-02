@@ -7,33 +7,11 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Build & Launch",
+            "name": "Launch Program",
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "internalConsoleOptions": "openOnSessionStart",
-            "program": "${workspaceFolder}\\src\\index.ts",
-            "preLaunchTask": "npm: build",
-            "sourceMaps": true,
-            "smartStep": true,
-            "outFiles": [
-                "${workspaceFolder}/dist/**/*.js"
-            ]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Launch",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "internalConsoleOptions": "openOnSessionStart",
-            "program": "${workspaceFolder}\\src\\index.ts",
-            "sourceMaps": true,
-            "smartStep": true,
-            "outFiles": [
-                "${workspaceFolder}/dist/**/*.js"
-            ]
+            "program": "${workspaceFolder}\\example\\index.js"
         }
     ]
 }

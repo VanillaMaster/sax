@@ -4,12 +4,15 @@
         "moduleResolution": "NodeNext",
         "target": "ES2022",
         "sourceMap": true,
+        "declaration": true,
         "outDir": "dist",
         "strict": true,
         "noImplicitAny": true,
         "paths": {},
         "checkJs": true,
-        "rootDir": ".",
+        "isolatedModules": true,
+        "esModuleInterop": true
+        // "rootDir": ".",
     },
     "include": [
         "src/**/*",

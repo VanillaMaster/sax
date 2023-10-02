@@ -1,4 +1,4 @@
-import type { NODE_INFO, DocumentHandler } from "./Builder.js";
+import { NODE_INFO, DocumentHandler } from "./Builder.js";
 import { NODE_TYPE } from "./node.js";
 import { EventEmitter } from "./EventEmitter.js";
 import { Element, ARENA } from "./Element.js";
