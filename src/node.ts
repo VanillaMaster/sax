@@ -1,4 +1,4 @@
-export enum NODE {
+export enum NODE_TYPE {
     OPENING = "OPENING_NODE",
     CLOSING = "CLOSING_NODE",
     SELF_CLOSING = "SELF_CLOSING_NODE",

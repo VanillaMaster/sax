@@ -31,7 +31,9 @@ export const CHAR_9 = 57;//"9".charCodeAt(0);
 /** ``` ``` */
 export const CHAR_SPACE = 32;//" ".charCodeAt(0);
 /** ```\n``` */
-export const CHAR_NEW_LINE = 10;//"\n".charCodeAt(0);
+export const CHAR_LINE_FEED = 10;//"\n".charCodeAt(0);
+/** ```\r``` */
+export const CHAR_CARRIAGE_RETURN = 13;//"\r".charCodeAt(0);
 /** ```s``` */
 export const CHAR_S_LOWER = 115;//"s".charCodeAt(0);
 /** ```c``` */
@@ -50,3 +52,7 @@ export const CHAR_Y_LOWER = 121;//"y".charCodeAt(0);
 export const CHAR_L_LOWER = 108;//"l".charCodeAt(0);
 /** ```e``` */
 export const CHAR_E_LOWER = 101;//"e".charCodeAt(0);
+/** ```.``` */
+export const CHAR_DOT = 46;//".".charCodeAt(0)
+/** ```_``` */
+export const CHAR_UNDERSCORE = 95;//"_".charCodeAt(0)
