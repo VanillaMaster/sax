@@ -7,6 +7,13 @@
 ## is it ready
  - not really, most likely there is alot of unhandled things 
 
+## how it work
+ - Automata (this one is deterministic finite) parse html to events (like attr_name, attr_value, node_start, etc);
+ - Builder convert this events to html elements events;
+ - DocumentParser keep path to curent element and dispatch event abount element occurrence.
+
+evry part of this chain can be replaced with custom implementation
+
 ### example
 
 ```js
@@ -56,3 +63,7 @@ for await (const chunk of iter) {
 automata.pushChunk(decoder.decode()).finalize();
 
 ```
+
+```element.arena``` - event emitter associated with node, trigger only event for ```element```\`s subtree
+
+package alos provide ```Unescaper``` wich capable of (kinda advanced) html unescape
