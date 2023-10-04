@@ -1,6 +1,13 @@
-sax-like
+## what it is
+- sax-like html parser
 
-## example
+## what it isn't
+- any kind of dom builder (in theory it is posible to build dom using it)
+
+## is it ready
+not really, most likely there is alot of unhandled things 
+
+### example
 
 ```js
 
