@@ -5,7 +5,7 @@
 - any kind of dom builder (in theory it is posible to build dom using it)
 
 ## is it ready
-not really, most likely there is alot of unhandled things 
+ - not really, most likely there is alot of unhandled things 
 
 ### example
 
