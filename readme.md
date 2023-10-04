@@ -2,7 +2,7 @@
  - write tests
  - fix evrything
  - add to arema option to be capturing
- - make repo public
+ - ~~make repo public~~
 
 ## what it is
 - sax-like html parser
