@@ -1,6 +1,7 @@
 ## TODO
  - write tests
  - fix evrything
+ - add to arema option to be capturing
  - make repo public
 
 ## what it is
