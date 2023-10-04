@@ -1,8 +1,16 @@
+## TODO
+ - write tests
+ - fix evrything
+ - make repo public
+
 ## what it is
 - sax-like html parser
 
 ## what it isn't
 - any kind of dom builder (in theory it is posible to build dom using it)
+
+## whats the point
+make *fast* stream oriented html parser
 
 ## is it ready
  - not really, most likely there is alot of unhandled things 
@@ -13,6 +21,9 @@
  - DocumentParser keep path to curent element and dispatch event abount element occurrence.
 
 evry part of this chain can be replaced with custom implementation
+
+## contributing
+i will be glad if anyone decides to help
 
 ### example
 
